@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Game Pimientab — Corregida</title>
+  <style>
+    :root{--bg:#0b0c18;--card:#101227;--accent:#6b46c1;--accent-2:#4f46e5;--muted:#cbd5e1}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#fff}
+    header{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:12px 16px;display:flex;align-items:center;gap:12px}
+    header img.logo{width:56px;height:56px;border-radius:12px;object-fit:cover}
+    header h1{margin:0;font-size:22px}
+    nav{margin-left:auto;display:flex;gap:12px;align-items:center}
+    nav a{color:#fff;text-decoration:none;font-weight:600}
+    main{max-width:1100px;margin:22px auto;padding:0 16px}
+    section{margin-bottom:28px}
+    h2{color:var(--muted);margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+    .card img{width:100%;height:180px;object-fit:cover;border-radius:8px}
+    .card h3{margin:10px 0 6px;font-size:18px}
+    .price{color:#ffd54a;font-weight:700;margin-bottom:8px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:var(--accent-2);color:#fff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.12)}
+    .cart-btn{position:fixed;right:16px;top:16px;background:var(--accent);padding:10px 12px;border-radius:10px;z-index:60;cursor:pointer}
+    .cart-count{background:#fff;color:#000;padding:2px 6px;border-radius:999px;margin-left:8px;font-weight:700}
+    .drawer{position:fixed;right:0;top:0;height:100vh;width:360px;background:#071024;padding:16px;transform:translateX(100%);transition:transform .22s ease;z-index:70;overflow:auto}
+    .drawer.open{transform:translateX(0)}
+    .drawer h3{margin:0 0 12px}
+    .cart-item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .qty{display:inline-flex;gap:6px;align-items:center}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:80}
+    .modal.show{display:flex}
+    .modal .box{width:95%;max-width:920px;background:#071228;border-radius:12px;padding:18px}
+    .gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .gallery img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+    .top-btn{position:fixed;right:16px;bottom:16px;background:var(--accent-2);padding:10px 12px;border-radius:10px;z-index:65;cursor:pointer}
+    footer{background:#081026;padding:18px;text-align:center;color:#9aa4b2}
+    @media(max-width:720px){.gallery{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Logo: intenta cargar desde imagenes/logo-gamepimientab.png. Si no existe, se mostrará un placeholder SVG generado por JS. -->
+    <img id="siteLogo" class="logo" src="imagenes/logo-gamepimientab.png" alt="Logo Game Pimientab">
+    <h1>Game Pimientab</h1>
+    <nav>
+      <a href="#catalogo">Productos</a>
+      <a href="#mision">Misión</a>
+      <a href="#vision">Visión</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="catalogo">
+      <h2>Catálogo</h2>
+      <div class="grid" id="productsGrid"></div>
+    </section>
+
+    <section id="mision">
+      <h2>Misión</h2>
+      <p>Ofrecer videojuegos clásicos de alta calidad para coleccionistas y amantes del gaming retro.</p>
+    </section>
+
+    <section id="vision">
+      <h2>Visión</h2>
+      <p>Ser la tienda de referencia de videojuegos clásicos en toda Latinoamérica.</p>
+    </section>
+
+    <section id="contacto">
+      <h2>Contacto y ubicación</h2>
+      <p>WhatsApp: <a href="https://wa.me/573002380547" target="_blank" rel="noopener">3002380547</a></p>
+      <p>Síguenos: <a href="https://www.instagram.com/pimientab_/" target="_blank" rel="noopener">Instagram</a> • <a href="https://www.facebook.com/profile.php?id=100083848070765&locale=es_LA" target="_blank" rel="noopener">Facebook</a></p>
+      <iframe src="https://www.google.com/maps?q=Carrera+81A+%2374-98,+Engativ%C3%A1&output=embed" style="width:100%;height:320px;border:0;border-radius:8px"></iframe>
+    </section>
+  </main>
+
+  <div class="cart-btn" id="cartBtn">🛒 Carrito <span class="cart-count" id="cartCount">0</span></div>
+
+  <aside class="drawer" id="cartDrawer">
+    <h3>Tu carrito</h3>
+    <div id="cartList"></div>
+    <p>Total: <strong id="cartTotal">$0</strong></p>
+    <button id="closeCart" class="secondary">Cerrar</button>
+  </aside>
+
+  <div class="modal" id="detailsModal">
+    <div class="box">
+      <button id="closeModal" style="float:right;background:transparent;border:0;color:#fff;font-size:20px">✕</button>
+      <h2 id="detailsTitle"></h2>
+      <div class="gallery" id="detailsGallery"></div>
+      <p id="detailsDesc"></p>
+      <p class="price" id="detailsPrice"></p>
+      <button id="detailsAdd">Agregar al carrito</button>
+    </div>
+  </div>
+
+  <button class="top-btn" id="topBtn">⬆</button>
+
+  <footer>
+    <p>© 2025 Game Pimientab</p>
+  </footer>
+
+  <script>
+    // Productos
+    const PRODUCTS = [
+      {id:'re4',name:'Resident Evil 4',price:120000,image:'imagenes/resident-evil-4.jpg',screenshots:['imagenes/resident-evil-4.jpg'],desc:'Resident Evil 4 redefine el survival horror con acción intensa.'},
+      {id:'dbz-tag',name:'DBZ Tenkaichi Tag Team',price:45000,image:'imagenes/dbz-tenkaichi-tag-team.jpg',screenshots:['imagenes/dbz-tenkaichi-tag-team.jpg'],desc:'Batallas portátiles con la icónica franquicia Dragon Ball.'},
+      {id:'dbz-bt3',name:'DBZ Budokai Tenkaichi 3',price:90000,image:'imagenes/budokai-tenkaichi-3.jpg',screenshots:['imagenes/budokai-tenkaichi-3.jpg'],desc:'Más de 150 personajes y combates épicos.'},
+      {id:'halo2',name:'Halo 2',price:50000,image:'imagenes/halo-2.jpg',screenshots:['imagenes/halo-2.jpg'],desc:'Shooter con campaña y multijugador legendarios.'},
+      {id:'gta-sa',name:'GTA San Andreas',price:55000,image:'imagenes/gta-san-andreas.jpg',screenshots:['imagenes/gta-san-andreas.jpg'],desc:'Mundo abierto y misiones en Los Santos.'},
+      {id:'nfs-mw',name:'Need for Speed Most Wanted',price:40000,image:'imagenes/nfs-most-wanted.jpg',screenshots:['imagenes/nfs-most-wanted.jpg'],desc:'Carreras y persecuciones policiales intensas.'}
+    ];
+
+    // Helpers
+    const fmt = v => new Intl.NumberFormat('es-CO').format(v)+' COP';
+
+    // State
+    let cart = JSON.parse(localStorage.getItem('gp_cart')||'[]');
+
+    // Refs
+    const productsGrid = document.getElementById('productsGrid');
+    const cartBtn = document.getElementById('cartBtn');
+    const cartCount = document.getElementById('cartCount');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartList = document.getElementById('cartList');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const detailsModal = document.getElementById('detailsModal');
+    const detailsTitle = document.getElementById('detailsTitle');
+    const detailsGallery = document.getElementById('detailsGallery');
+    const detailsDesc = document.getElementById('detailsDesc');
+    const detailsPrice = document.getElementById('detailsPrice');
+    const detailsAdd = document.getElementById('detailsAdd');
+    const closeModalBtn = document.getElementById('closeModal');
+    const topBtn = document.getElementById('topBtn');
+    const siteLogo = document.getElementById('siteLogo');
+
+    // Placeholder generator (SVG data URI)
+    function placeholderDataURI(label, w=480, h=320){
+      const bg = '%23222';
+      const fg = '%23fff';
+      const txt = encodeURIComponent(label);
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><rect width='100%' height='100%' fill='${bg}'/><text x='50%' y='50%' fill='${fg}' font-size='18' dominant-baseline='middle' text-anchor='middle'>${txt}</text></svg>`;
+      return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+    }
+
+    // Set placeholder if image fails
+    function setPlaceholder(imgEl, label){
+      imgEl.onerror = null;
+      imgEl.src = placeholderDataURI(label, 480, 320);
+    }
+
+    // Render productos
+    function renderProducts(){
+      productsGrid.innerHTML = '';
+      PRODUCTS.forEach(p=>{
+        const card = document.createElement('div'); card.className='card';
+        const img = document.createElement('img'); img.src = p.image; img.alt = p.name; img.onload = ()=>{}; img.onerror = ()=> setPlaceholder(img, p.name);
+        const h3 = document.createElement('h3'); h3.textContent = p.name;
+        const price = document.createElement('div'); price.className='price'; price.textContent = fmt(p.price);
+        const controls = document.createElement('div'); controls.className='controls';
+        const addBtn = document.createElement('button'); addBtn.textContent='Agregar'; addBtn.addEventListener('click', ()=> addToCart(p.id));
+        const detBtn = document.createElement('button'); detBtn.textContent='Ver detalles'; detBtn.className='secondary'; detBtn.addEventListener('click', ()=> openDetails(p.id));
+        controls.appendChild(addBtn); controls.appendChild(detBtn);
+        card.appendChild(img); card.appendChild(h3); card.appendChild(price); card.appendChild(controls);
+        productsGrid.appendChild(card);
+      });
+    }
+
+    // Logo fallback
+    siteLogo.onerror = ()=> setPlaceholder(siteLogo, 'Game Pimientab');
+
+    // Cart functions
+    function saveCart(){ localStorage.setItem('gp_cart', JSON.stringify(cart)); }
+    function updateCartUI(){
+      cartList.innerHTML = '';
+      let total = 0;
+      if(cart.length===0){ cartList.innerHTML = '<p class="small">Tu carrito está vacío.</p>'; }
+      cart.forEach((it, idx)=>{
+        const row = document.createElement('div'); row.className='cart-item';
+        row.innerHTML = `<div><strong>${it.name}</strong><div class='small'>${fmt(it.price)} x ${it.qty}</div></div><div>${fmt(it.price*it.qty)}</div>`;
+        cartList.appendChild(row);
+        total += it.price*it.qty;
+      });
+      cartTotalEl.textContent = fmt(total);
+      cartCount.textContent = cart.reduce((s,i)=>s+i.qty,0);
+      saveCart();
+    }
+
+    function addToCart(id){
+      const p = PRODUCTS.find(x=>x.id===id); if(!p) return;
+      const existing = cart.find(i=>i.id===id);
+      if(existing) existing.qty++;
+      else cart.push({id:p.id,name:p.name,price:p.price,qty:1});
+      updateCartUI(); cartDrawer.classList.add('open');
+    }
+
+    // Details modal
+    let currentProduct = null;
+    function openDetails(id){ const p = PRODUCTS.find(x=>x.id===id); if(!p) return; currentProduct=p; detailsTitle.textContent=p.name; detailsGallery.innerHTML=''; (p.screenshots||[p.image]).forEach(src=>{ const im=document.createElement('img'); im.src=src; im.alt=p.name; im.onerror=()=>setPlaceholder(im,p.name); detailsGallery.appendChild(im); }); detailsDesc.textContent=p.desc; detailsPrice.textContent = fmt(p.price); detailsModal.classList.add('show'); }
+    closeModalBtn.addEventListener('click', ()=> detailsModal.classList.remove('show'));
+    detailsAdd.addEventListener('click', ()=>{ if(!currentProduct) return; addToCart(currentProduct.id); detailsModal.classList.remove('show'); });
+
+    // Cart drawer toggles
+    document.getElementById('cartBtn').addEventListener('click', ()=> cartDrawer.classList.toggle('open'));
+    document.getElementById('closeCart').addEventListener('click', ()=> cartDrawer.classList.remove('open'));
+
+    // Top button
+    topBtn.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
+
+    // Init
+    renderProducts(); updateCartUI();
+
+    // Expose for debugging
+    window.gp = { PRODUCTS, addToCart, openDetails };
+  </script>
+</body>
+</html>
